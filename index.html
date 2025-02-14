@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head> 
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Valentine</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Ballet:opsz@16..72&family=Monsieur+La+Doulaise&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="card.css">
+        <style>
+            /* Make sure canvas is in the background */
+            canvas {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: -1; /* Keep the canvas in the background */
+            }
+
+            /* Style for the button */
+            #trigger-confetti {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                padding: 10px 20px;
+                font-size: 18px;
+                background-color: #ffaabf;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                z-index: 10; /* Ensure button is in front */
+            }
+
+            /* Add hover effect for the button */
+            #trigger-confetti:hover {
+                background-color: #ff6699;
+            }
+        </style>
+    </head>
+    <body> 
+        <div class="container">
+            <div class="valentines">
+                <div class="envelope">
+                    <div class="card">
+                        <div class="text">
+                            Will you be <br>my valentine?
+                        </div>
+                        <div class="heart"></div>
+                        <div class="buttons">
+                            <button class="yes">yes</button>
+                            <button class="no">no</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="front"></div> 
+            </div>
+        </div>
+
+        <canvas id="canvas-wrapping"></canvas> <!-- Canvas for confetti -->
+
+        <script>
+            // Confetti code
+            const canvas = document.getElementById("canvas-wrapping");
+            const ctx = canvas.getContext("2d");
+
+            // Ensure the canvas fits the window size
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const confettiImages = [
+                
+                'tape.png',
+                'heart.png',
+                'flower.png',
+                'lace.png',
+                
+                
+            ];
+
+            const images = [];
+            confettiImages.forEach(src => {
+                const img = new Image();
+                img.src = src;
+                images.push(img);
+            });
+
+            function renderWrappingConfetti() {
+                const timeDelta = 0.05;
+                const xAmplitude = 0.5;
+                const yAmplitude = 1;
+                const xVelocity = 5;
+                const yVelocity = 6;
+
+                let time = 0;
+                const confetti = [];
+
+                for (let i = 0; i < 100; i++) {
+                    const width = Math.floor(Math.random() * 50) + 10;  
+                    const randomImage = images[Math.floor(Math.random() * images.length)];
+
+                    const aspectRatio = randomImage.width / randomImage.height;
+                    const height = width / aspectRatio;
+
+                    const tilt = Math.floor(Math.random() * 10) - 10;
+                    const xSpeed = Math.random() * xVelocity - xVelocity / 2;
+                    const ySpeed = Math.random() * yVelocity;
+                    const x = Math.random() * canvas.width;
+                    const y = Math.random() * canvas.height - canvas.height;
+
+                    confetti.push({
+                        x,
+                        y,
+                        xSpeed,
+                        ySpeed,
+                        width,
+                        height,
+                        tilt,
+                        image: randomImage,
+                        phaseOffset: i,
+                    });
+                }
+
+                function update() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    confetti.forEach((piece) => {
+                        piece.y += (Math.cos(piece.phaseOffset + time) + 1) * yAmplitude + piece.ySpeed;
+                        piece.x += Math.sin(piece.phaseOffset + time) * xAmplitude + piece.xSpeed;
+
+                        if (piece.x < 0) piece.x = canvas.width;
+                        if (piece.x > canvas.width) piece.x = 0;
+                        if (piece.y > canvas.height) piece.y = 0;
+
+                        ctx.save();
+                        ctx.translate(piece.x + piece.tilt, piece.y + piece.tilt);
+                        ctx.rotate(piece.tilt * Math.PI / 180);
+                        ctx.drawImage(piece.image, -piece.width / 2, -piece.height / 2, piece.width, piece.height);
+                        ctx.restore();
+                    });
+
+                    time += timeDelta;
+                    requestAnimationFrame(update);
+                }
+                update();
+            }
+
+            // Handle the card button click
+            document.addEventListener("DOMContentLoaded", function() {
+                const card = document.querySelector('.card');
+                const buttons = document.querySelector('.card .buttons');
+                const yesButton = document.querySelector('.yes');
+
+                card.addEventListener('animationend', function() {
+                    setTimeout(function() {
+                        buttons.style.display = 'flex';
+                        buttons.style.opacity = 1;
+                    }, 0);
+                });
+
+                // Trigger confetti when "Yes" is clicked
+                yesButton.addEventListener('click', function() {
+                    renderWrappingConfetti(); // Trigger the confetti animation
+                });
+            });
+        </script>
+    </body>
+</html>
